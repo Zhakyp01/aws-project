@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'vpc', credentialsId: 'jenkins', url: 'https://github.com/Zhakyp01/aws-project.git'
+                git branch: 'master', credentialsId: 'jenkins', url: 'https://github.com/Zhakyp01/aws-project.git'
             }
         }
         stage('Terraform Init') {
