@@ -5,8 +5,8 @@ terraform {
     bucket = "aws-project-1234"
     key    = "remote.tfstate"
     region = "us-east-1"
-    access_key = "AKIA5P475UJCOFVQEZW4"
-    secret_key = "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"
+    access_key = "AKIAW4TRIAUHCJ2BFTXB"
+    secret_key = "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"
     encrypt    = true
   }
 }
