@@ -21,7 +21,7 @@ pipeline {
                  script{
                         dir("terraform")
                         {
-                            git "https://github.com/Zhakyp01/aws-project.git"
+                         git branch: 'master', credentialsId: 'jenkins', url: 'https://github.com/Zhakyp01/aws-project.git'
                         }
                     }
                 }
@@ -35,11 +35,14 @@ pipeline {
             }
             
             steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) 
+                {
                 sh 'terraform init -input=false'
                 sh 'terraform workspace select ${environment} || terraform workspace new ${environment}'
 
                 sh "terraform plan -input=false -out tfplan "
                 sh 'terraform show -no-color tfplan > tfplan.txt'
+                }
             }
         }
         stage('Approval') {
@@ -72,7 +75,10 @@ pipeline {
             }
             
             steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) 
+                {
                 sh "terraform apply -input=false tfplan"
+                }
             }
         }
         
@@ -82,7 +88,10 @@ pipeline {
             }
         
         steps {
+           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) 
+           {
            sh "terraform destroy --auto-approve"
+           }
         }
     }
 
