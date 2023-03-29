@@ -1,28 +1,42 @@
-properties([ parameters([
-  string( name: 'AWS_ACCESS_KEY_ID', defaultValue: ''),
-  string( name: 'AWS_SECRET_ACCESS_KEY', defaultValue: ''),
-  string( name: 'AWS_REGION', defaultValue: 'us-west-2'),
-]), pipelineTriggers([]) ])
-// Environment Variables.
-env.access_key = AWS_ACCESS_KEY_ID
-env.secret_key = AWS_SECRET_ACCESS_KEY
-env.region = AWS_REGION
 pipeline {
     agent any
+//     tools {
+//         terraform 'terraform'
+//         }
     stages {
-        stage ('Terraform Init'){
+        stage('Git Checkout') {
             steps {
-                sh "export TF_VAR_region='${env.aws_region}' && export TF_VAR_access_key='${env.access_key}' && export TF_VAR_secret_key='${env.secret_key}' && terraform init"
+                git branch: 'vpc', credentialsId: 'jenkins', url: 'https://github.com/lllunara/jenkins.git'
             }
         }
-        stage ('Terraform Plan'){
+        stage('Terraform Init') {
             steps {
-                sh "export TF_VAR_region='${env.aws_region}' && export TF_VAR_access_key='${env.access_key}' && export TF_VAR_secret_key='${env.secret_key}' && terraform plan -var-file terraform-dev.tfvars" 
+                sh 'terraform init'
             }
         }
-        stage ('Terraform Apply & Deploy Docker Image on Webserver'){
+        stage('Terraform Plan') {
             steps {
-                sh "export TF_VAR_region='${env.aws_region}' && export TF_VAR_access_key='${env.access_key}' && export TF_VAR_secret_key='${env.secret_key}' && terraform apply -var-file terraform-dev.tfvars -auto-approve"
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) 
+                {
+                sh 'terraform plan'
+                }
             }
         }
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) 
+                {
+                sh 'terraform apply --auto-approve'
+                }
+            }
+        }
+        // stage('Terraform Destroy') {
+        //     steps {
+        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) 
+        //         {
+        //         sh 'terraform destroy --auto-approve'
+        //         }
+        //     }
+        // }
     }
+}
