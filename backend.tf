@@ -7,5 +7,6 @@ terraform {
     region = "us-east-1"
     access_key = "AKIA5P475UJCOFVQEZW4"
     secret_key = "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"
+    encrypt    = true
   }
 }
